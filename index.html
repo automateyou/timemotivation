@@ -69,24 +69,26 @@
     margin-bottom: 16px;
   }
   .title-row {
-    display: flex; align-items: baseline; gap: 24px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: baseline;
+    gap: 24px;
+    min-height: clamp(40px, 4vw, 56px);
   }
   .now-bar {
     display: flex; align-items: baseline; gap: 12px;
     min-width: 0;
+    overflow: hidden;
   }
-  .now-bar.overdue { flex: 1 1 0; }
-  .now-bar.current {
-    flex: 0 0 auto;
-    margin-left: auto;
-  }
+  .now-bar.overdue { /* column 1 — left half */ }
+  .now-bar.current { /* column 2 — starts at exact horizontal midpoint */ }
   .bar-label {
     font-family: var(--serif);
     font-size: clamp(24px, 3.12vw, 36px);
     font-weight: 600;
     letter-spacing: -0.01em;
     white-space: nowrap;
+    flex: 0 0 auto;
   }
   .now-bar.overdue .bar-label { color: var(--ink-3); }
   .now-bar.current  .bar-label { color: var(--accent); }
@@ -96,13 +98,13 @@
     line-height: 1.1;
     font-weight: 500;
     letter-spacing: -0.015em;
-    max-width: min(48vw, 760px);
+    flex: 1 1 0;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     min-height: 1.15em;
-    display: inline-flex;
-    align-items: baseline;
+    display: block;
   }
   .now-bar.overdue .bar-text { color: var(--ink-2); cursor: pointer; }
   .now-bar.current  .bar-text { color: var(--accent); cursor: pointer; font-weight: 600; }

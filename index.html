@@ -242,11 +242,51 @@
     min-width: 0;
   }
 
-  /* "End of workday" marker on the 5 PM column */
+  /* Work block outline (10 AM → 5 PM) — outer perimeter only.
+     The block wraps: 10am–2pm runs across the end of row 1; 3pm–5pm runs
+     across the start of row 2. Top + bottom on every column; left only on
+     the first of each row's strip, right only on the last. */
+  .hour-col[data-hour="10"] {
+    box-shadow:
+      inset 0  2px 0 var(--accent),
+      inset 0 -2px 0 var(--accent),
+      inset  2px 0 0 var(--accent);
+    z-index: 1; position: relative;
+  }
+  .hour-col[data-hour="11"],
+  .hour-col[data-hour="12"],
+  .hour-col[data-hour="13"] {
+    box-shadow:
+      inset 0  2px 0 var(--accent),
+      inset 0 -2px 0 var(--accent);
+    z-index: 1; position: relative;
+  }
+  .hour-col[data-hour="14"] {
+    box-shadow:
+      inset 0  2px 0 var(--accent),
+      inset 0 -2px 0 var(--accent),
+      inset -2px 0 0 var(--accent);
+    z-index: 1; position: relative;
+  }
+  .hour-col[data-hour="15"] {
+    box-shadow:
+      inset 0  2px 0 var(--accent),
+      inset 0 -2px 0 var(--accent),
+      inset  2px 0 0 var(--accent);
+    z-index: 1; position: relative;
+  }
+  .hour-col[data-hour="16"] {
+    box-shadow:
+      inset 0  2px 0 var(--accent),
+      inset 0 -2px 0 var(--accent);
+    z-index: 1; position: relative;
+  }
   .hour-col[data-hour="17"] {
-    box-shadow: inset 0 0 0 2px var(--accent);
-    z-index: 1;
-    position: relative;
+    box-shadow:
+      inset 0  2px 0 var(--accent),
+      inset 0 -2px 0 var(--accent),
+      inset -2px 0 0 var(--accent);
+    z-index: 1; position: relative;
   }
   .hour-col[data-hour="17"]::after {
     content: '↑ work ends';
@@ -1088,7 +1128,7 @@
   <div class="eye-break-avatar">🧑‍🏫</div>
   <div class="eye-break-content">
     <div class="eye-break-title">👀 Eye break!</div>
-    <div class="eye-break-body">Look at something <strong>20 ft away</strong> for <strong>20 seconds</strong>.</div>
+    <div class="eye-break-body">Look at something <strong>20 ft away</strong> for <strong>5 seconds</strong>.</div>
     <button class="eye-break-close" id="eye-break-close">Got it</button>
   </div>
 </div>
@@ -2896,25 +2936,57 @@
     osc.start(now); osc.stop(now + 1.2);
   }
 
-  // Bright ka-ching for coin collection — ascending triangle-wave ping
+  // Cash sound — "KA" (drawer thump) + "CHING" (bell chord) + sparkly trail
   function playCashSound() {
     const ctx = ensureAudio(); if (!ctx) return;
     const now = ctx.currentTime;
-    [
-      { f: 1320, t: 0.00, d: 0.20, g: 0.16 },
-      { f: 1760, t: 0.05, d: 0.28, g: 0.14 },
-      { f: 2640, t: 0.10, d: 0.18, g: 0.10 },
-    ].forEach(({ f, t, d, g }) => {
+
+    // 1) "KA" — short metallic drawer thump (sawtooth with quick downward sweep)
+    {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.value = f;
-      const start = now + t;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(g, start + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + d);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.exponentialRampToValueAtTime(85, now + 0.07);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.22, now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(start); osc.stop(start + d + 0.05);
+      osc.start(now); osc.stop(now + 0.12);
+    }
+
+    // 2) "CHING" — bell-like chord (major-chord-ish stack of sines, long decay)
+    const bellStart = now + 0.06;
+    [
+      { f: 1320, g: 0.18, d: 1.6 }, // root  E6
+      { f: 1760, g: 0.15, d: 1.4 }, // A6
+      { f: 2200, g: 0.10, d: 1.2 }, // C#7
+      { f: 2640, g: 0.10, d: 1.0 }, // E7
+      { f: 3520, g: 0.06, d: 0.9 }, // A7
+    ].forEach(({ f, g, d }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0, bellStart);
+      gain.gain.linearRampToValueAtTime(g, bellStart + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.001, bellStart + d);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(bellStart); osc.stop(bellStart + d + 0.05);
+    });
+
+    // 3) Sparkly arpeggio that rolls off the tail
+    [4400, 5280, 6600, 7920].forEach((f, i) => {
+      const start = now + 0.32 + i * 0.085;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.045, start + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.55);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(start); osc.stop(start + 0.6);
     });
   }
 
@@ -2974,18 +3046,8 @@
     }, 600);
   }
 
-  // Every 60s, give a soft audio nudge of the current task — only if there's
-  // an active task and we didn't just fire a full reminder.
+  // (60-second soft pulse removed — was too noisy.)
   let lastReminderAt = 0;
-  function pulseCurrentTask() {
-    const k = currentSlotKey();
-    if (!k) return;
-    const t = state.tasks[k];
-    if (!t || !t.label || !t.label.trim() || t.done) return;
-    // Skip if the main reminder fired within the last ~30s
-    if (lastReminderAt && Date.now() - lastReminderAt < 30 * 1000) return;
-    playSoftChime();
-  }
 
   // Eye-break popup — pops from the coach every 10 minutes during waking hours
   const eyeBreakPopup = document.getElementById('eye-break-popup');
@@ -2997,7 +3059,7 @@
     eyeBreakPopup.hidden = false;
     playSoftChime();
     clearTimeout(eyeBreakPopup._timer);
-    eyeBreakPopup._timer = setTimeout(hideEyeBreak, 30 * 1000);
+    eyeBreakPopup._timer = setTimeout(hideEyeBreak, 5 * 1000);
   }
   function hideEyeBreak() {
     if (!eyeBreakPopup) return;
@@ -3271,8 +3333,6 @@
     setInterval(() => { updateNowMarker(); updatePastUndone(); }, 30 * 1000);
     // Check every 5 seconds so 5-min slot transitions never get missed
     setInterval(checkReminders, 5 * 1000);
-    // Soft 60-second pulse — low dull tone for the current active task
-    setInterval(pulseCurrentTask, 60 * 1000);
     // Eye break every 10 minutes during waking hours
     setInterval(showEyeBreak, 10 * 60 * 1000);
     setTimeout(checkReminders, 1500);

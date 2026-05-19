@@ -374,7 +374,7 @@
     appearance: none; -webkit-appearance: none;
     width: 18px; height: 18px;
     border: none; background-color: transparent;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><defs><radialGradient id='fc' cx='32%25' cy='26%25' r='82%25'><stop offset='0%25' stop-color='%23fff7c2'/><stop offset='22%25' stop-color='%23ffe060'/><stop offset='62%25' stop-color='%23d99c0a'/><stop offset='100%25' stop-color='%236b4505'/></radialGradient><linearGradient id='ec' x1='0' y1='0' x2='0' y2='1'><stop offset='0%25' stop-color='%23b18412'/><stop offset='100%25' stop-color='%23533804'/></linearGradient></defs><ellipse cx='12.8' cy='13.2' rx='10.4' ry='10.7' fill='url(%23ec)'/><ellipse cx='12' cy='12' rx='10.4' ry='10.7' fill='url(%23fc)' stroke='%234e3403' stroke-width='0.5'/><ellipse cx='12' cy='12' rx='7.8' ry='8.2' fill='none' stroke='%23a87810' stroke-width='0.55' opacity='0.6'/><ellipse cx='7.8' cy='7.2' rx='3.8' ry='2.2' fill='%23ffffff' opacity='0.6'/><text x='12.6' y='16.6' text-anchor='middle' font-family='Georgia, Arial Black, sans-serif' font-size='14' fill='%23643d02' opacity='0.6' font-weight='900'>$</text><text x='12' y='16.1' text-anchor='middle' font-family='Georgia, Arial Black, sans-serif' font-size='14' fill='%23fff19a' font-weight='900'>$</text></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='fA' cx='32%25' cy='26%25' r='82%25'><stop offset='0%25' stop-color='%23fff5b0'/><stop offset='18%25' stop-color='%23ffe04a'/><stop offset='52%25' stop-color='%23e0a808'/><stop offset='82%25' stop-color='%238a5e08'/><stop offset='100%25' stop-color='%233a2602'/></radialGradient><linearGradient id='eA' x1='25%25' y1='10%25' x2='100%25' y2='95%25'><stop offset='0%25' stop-color='%23c48810'/><stop offset='35%25' stop-color='%23a07410'/><stop offset='75%25' stop-color='%235a3d06'/><stop offset='100%25' stop-color='%231f1402'/></linearGradient><radialGradient id='rA' cx='40%25' cy='34%25' r='65%25'><stop offset='0%25' stop-color='%23000000' stop-opacity='0'/><stop offset='82%25' stop-color='%23000000' stop-opacity='0'/><stop offset='100%25' stop-color='%233a2602' stop-opacity='0.5'/></radialGradient></defs><ellipse cx='55' cy='55' rx='44' ry='44.5' fill='url(%23eA)'/><circle cx='50' cy='50' r='44.5' fill='url(%23fA)' stroke='%233a2602' stroke-width='0.6'/><circle cx='50' cy='50' r='39' fill='none' stroke='%238a5e08' stroke-width='2' opacity='0.4'/><circle cx='50' cy='50' r='34' fill='none' stroke='%23623f04' stroke-width='1.5' opacity='0.6'/><circle cx='50' cy='50' r='34' fill='url(%23rA)'/><path d='M 18 32 A 34 34 0 0 1 36 14' fill='none' stroke='%23fff8c0' stroke-width='1.5' opacity='0.45'/><ellipse cx='30' cy='24' rx='13' ry='7' fill='%23ffffff' opacity='0.42'/><ellipse cx='30' cy='24' rx='6' ry='3' fill='%23ffffff' opacity='0.72'/><text x='53' y='71' text-anchor='middle' font-family='Georgia, serif' font-size='56' fill='%233a2602' opacity='0.65' font-weight='900'>$</text><text x='50' y='68' text-anchor='middle' font-family='Georgia, serif' font-size='56' fill='%23fff19a' font-weight='900'>$</text></svg>");
     background-size: 18px 18px;
     background-position: center;
     background-repeat: no-repeat;
@@ -720,35 +720,36 @@
   .coach-toggle { bottom: 78px !important; }
   .coach-panel { bottom: 78px !important; }
 
-  /* Cash pile — bottom-right running total */
+  /* Cash pile — top-right running total, BIG */
   .cash-pile {
     position: fixed;
-    bottom: 78px; right: 22px;
+    top: 24px; right: 28px;
     z-index: 45;
     background: var(--paper);
-    border: 1px solid var(--rule);
-    padding: 8px 14px 8px 12px;
+    border: 2px solid var(--rule);
+    padding: 18px 30px 18px 24px;
     border-radius: 100px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
     font-family: var(--serif);
     font-weight: 700;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.20), 0 4px 10px rgba(0,0,0,0.10);
     cursor: default;
     transition: transform 0.18s ease;
   }
   .cash-pile.bumped { animation: cash-bump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
   @keyframes cash-bump {
     0%   { transform: scale(1); }
-    35%  { transform: scale(1.22); }
+    35%  { transform: scale(1.18); }
     100% { transform: scale(1); }
   }
-  .cash-icon { font-size: 18px; line-height: 1; }
+  .cash-icon { font-size: 72px; line-height: 1; }
   .cash-total {
-    font-size: 16px;
+    font-size: 52px;
     color: #b08410;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    line-height: 1;
   }
 
   /* Flying coin (clone that animates from clicked slot → cash pile) */
@@ -757,7 +758,7 @@
     width: 24px; height: 24px;
     z-index: 1000;
     pointer-events: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><defs><radialGradient id='fc2' cx='32%25' cy='26%25' r='82%25'><stop offset='0%25' stop-color='%23fff7c2'/><stop offset='22%25' stop-color='%23ffe060'/><stop offset='62%25' stop-color='%23d99c0a'/><stop offset='100%25' stop-color='%236b4505'/></radialGradient><linearGradient id='ec2' x1='0' y1='0' x2='0' y2='1'><stop offset='0%25' stop-color='%23b18412'/><stop offset='100%25' stop-color='%23533804'/></linearGradient></defs><ellipse cx='12.8' cy='13.2' rx='10.4' ry='10.7' fill='url(%23ec2)'/><ellipse cx='12' cy='12' rx='10.4' ry='10.7' fill='url(%23fc2)' stroke='%234e3403' stroke-width='0.5'/><ellipse cx='12' cy='12' rx='7.8' ry='8.2' fill='none' stroke='%23a87810' stroke-width='0.55' opacity='0.6'/><ellipse cx='7.8' cy='7.2' rx='3.8' ry='2.2' fill='%23ffffff' opacity='0.6'/><text x='12.6' y='16.6' text-anchor='middle' font-family='Georgia, Arial Black, sans-serif' font-size='14' fill='%23643d02' opacity='0.6' font-weight='900'>$</text><text x='12' y='16.1' text-anchor='middle' font-family='Georgia, Arial Black, sans-serif' font-size='14' fill='%23fff19a' font-weight='900'>$</text></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='fB' cx='32%25' cy='26%25' r='82%25'><stop offset='0%25' stop-color='%23fff5b0'/><stop offset='18%25' stop-color='%23ffe04a'/><stop offset='52%25' stop-color='%23e0a808'/><stop offset='82%25' stop-color='%238a5e08'/><stop offset='100%25' stop-color='%233a2602'/></radialGradient><linearGradient id='eB' x1='25%25' y1='10%25' x2='100%25' y2='95%25'><stop offset='0%25' stop-color='%23c48810'/><stop offset='35%25' stop-color='%23a07410'/><stop offset='75%25' stop-color='%235a3d06'/><stop offset='100%25' stop-color='%231f1402'/></linearGradient><radialGradient id='rB' cx='40%25' cy='34%25' r='65%25'><stop offset='0%25' stop-color='%23000000' stop-opacity='0'/><stop offset='82%25' stop-color='%23000000' stop-opacity='0'/><stop offset='100%25' stop-color='%233a2602' stop-opacity='0.5'/></radialGradient></defs><ellipse cx='55' cy='55' rx='44' ry='44.5' fill='url(%23eB)'/><circle cx='50' cy='50' r='44.5' fill='url(%23fB)' stroke='%233a2602' stroke-width='0.6'/><circle cx='50' cy='50' r='34' fill='none' stroke='%23623f04' stroke-width='1.5' opacity='0.6'/><circle cx='50' cy='50' r='34' fill='url(%23rB)'/><ellipse cx='30' cy='24' rx='13' ry='7' fill='%23ffffff' opacity='0.42'/><ellipse cx='30' cy='24' rx='6' ry='3' fill='%23ffffff' opacity='0.72'/><text x='53' y='71' text-anchor='middle' font-family='Georgia, serif' font-size='56' fill='%233a2602' opacity='0.65' font-weight='900'>$</text><text x='50' y='68' text-anchor='middle' font-family='Georgia, serif' font-size='56' fill='%23fff19a' font-weight='900'>$</text></svg>");
     background-size: 24px 24px;
     background-position: center;
     background-repeat: no-repeat;
@@ -866,7 +867,7 @@
 
   /* ─────────────────────────── TOAST ────────────────────────── */
   .toast-stack {
-    position: fixed; top: 28px; right: 28px;
+    position: fixed; top: 160px; right: 28px;
     z-index: 100; display: flex; flex-direction: column;
     gap: 12px;
     width: min(560px, 44vw);
@@ -1576,14 +1577,19 @@
     li.appendChild(actions);
     li.appendChild(cb);
 
-    // ── Drag-and-drop: grab the time-label, drop on another slot to swap tasks ──
-    time.setAttribute('draggable', 'true');
-    time.addEventListener('dragstart', e => {
+    // ── Drag-and-drop: the whole slot is a drag handle (except inputs/buttons) ──
+    li.setAttribute('draggable', 'true');
+    li.addEventListener('dragstart', e => {
+      // Don't drag when starting from the text input, checkbox, or action buttons
+      if (e.target.closest('input, button, .icon-btn')) {
+        e.preventDefault();
+        return;
+      }
       e.dataTransfer.setData('text/plain', k);
       e.dataTransfer.effectAllowed = 'move';
       li.classList.add('dragging');
     });
-    time.addEventListener('dragend', () => li.classList.remove('dragging'));
+    li.addEventListener('dragend', () => li.classList.remove('dragging'));
 
     li.addEventListener('dragover', e => {
       if (e.dataTransfer.types.includes('text/plain')) {
@@ -1606,7 +1612,6 @@
         return;
       }
       snapshot();
-      // Swap labels + done state (keep lock & repeat tied to the slot, not the task)
       const tmpLabel = src.label, tmpDone = src.done, tmpFired = src.lastFired;
       src.label = dst.label; src.done = dst.done; src.lastFired = dst.lastFired;
       dst.label = tmpLabel; dst.done = tmpDone; dst.lastFired = tmpFired;

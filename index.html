@@ -41,7 +41,7 @@
     font-family: var(--sf-mono); font-size: 11px; opacity: 0.6;
   }
 
-  .circle-wrap { position: relative; width: 300px; height: 300px; margin-bottom: 10px; }
+  .circle-wrap { position: relative; width: 300px; height: 300px; margin-bottom: 2px; }
   .circle-wrap svg.ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
   .circle-center {
     position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -107,6 +107,10 @@
     background: rgba(255,255,255,0.08);
     border-color: rgba(232,228,216,0.25);
   }
+  /* Compact volume control sitting inline at the end of the tabs row */
+  .tabs .volume-control { height: 30px; padding: 3px 10px 3px 5px; gap: 6px; }
+  .tabs .volume-slider { width: 84px; }
+  .tabs .volume-pct { font-size: 11px; }
   /* Volume sits in a centered row directly under the table of contents */
   .volume-row {
     display: flex; justify-content: flex-end;
@@ -244,6 +248,23 @@
     flex-shrink: 0; min-width: 54px;
   }
   .hour-rule { flex: 1; height: 1px; background: rgba(212,165,116,0.28); }
+  /* NOW marker — red line, flashing NOW badge, big current time */
+  .now-line {
+    display: flex; align-items: center; gap: 12px;
+    margin: 6px 0 8px; padding: 0 2px;
+  }
+  .now-rule { flex: 1; height: 2px; background: #e5484d; border-radius: 2px; box-shadow: 0 0 8px rgba(229,72,77,0.6); }
+  .now-badge {
+    flex-shrink: 0; background: #e5484d; color: #fff;
+    font-family: var(--sf-display); font-weight: 800; font-size: 20px;
+    letter-spacing: 0.06em; padding: 4px 14px; border-radius: 8px;
+    animation: now-flash 1s steps(1) infinite;
+  }
+  .now-time {
+    flex-shrink: 0; font-family: var(--sf-display); font-weight: 800;
+    font-size: 26px; color: #ff7a7d; letter-spacing: -0.01em;
+  }
+  @keyframes now-flash { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
   /* Hard-coded water reminder at the top of each hour */
   .hour-water {
     display: flex; align-items: center; gap: 8px;
@@ -322,7 +343,18 @@
 
   .circle-row {
     display: flex; align-items: center; justify-content: center;
-    gap: 8px; margin-bottom: 4px;
+    gap: 8px; margin-bottom: 4px; width: 100%;
+  }
+  /* Container for timer + controls. On desktop it freezes near the top so the
+     circle and buttons stay on screen while the task list scrolls. */
+  .time-sticky { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  @media (min-width: 900px) {
+    .time-sticky {
+      position: sticky; top: var(--tabs-h, 0px); z-index: 30;
+      background: rgba(13,17,25,0.96);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      padding-bottom: 10px; border-bottom: 1px solid rgba(232,228,216,0.08);
+    }
   }
   .nav-arrow {
     background: rgba(255,255,255,0.04);
@@ -429,7 +461,7 @@
   }
   .abtn-danger:hover, .abtn-fail:hover { background: rgba(200,90,80,0.2); border-color: #d98c84; color: #e8a59e; }
 
-  .list-section { width: 100%; max-width: 560px; }
+  .list-section { width: 100%; max-width: 560px; margin: 0 auto; }
   .list-header {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 8px; padding: 0 4px;
@@ -1157,7 +1189,7 @@ function loadPersistedState() {
 
     return parsed;
   } catch (e) {
-    console.warn('Failed to load saved state:', e);
+    /* load error ignored */
     return null;
   }
 }
@@ -1309,7 +1341,7 @@ function savePersistedState() {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     } catch (e) {
-      console.warn('Failed to save state:', e);
+      /* save error ignored */
     }
   }, 200);
 }
@@ -1337,7 +1369,7 @@ function flushPersistedState() {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
-    console.warn('Failed to flush state:', e);
+    /* flush error ignored */
   }
 }
 // Flush on any signal that the tab is going away or being backgrounded.
@@ -1611,7 +1643,7 @@ function playCashSound() {
 
 function speak(text) {
   if (!('speechSynthesis' in window)) {
-    console.warn('No speech synthesis available');
+    /* no speech synthesis */
     return;
   }
   if (state.muted) return;
@@ -1622,9 +1654,9 @@ function speak(text) {
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.95; u.pitch = 1.0; u.volume = state.volume;
     u.onend = () => { if (currentSpeechText === text) currentSpeechText = ''; };
-    u.onerror = (ev) => { console.warn('Speech error:', ev); };
+    u.onerror = () => {};
     window.speechSynthesis.speak(u);
-  } catch (e) { console.error('Speech failed:', e); }
+  } catch (e) { /* speech failed, ignore */ }
 }
 
 // ---- Actions ----
@@ -1647,12 +1679,11 @@ function startTimer() {
       checkSpeakOnTaskChange();
     } else {
       const elapsed = curDurationSec() - state.timeLeft;
-      // Fire a reminder every ~15 seconds. We track the elapsed-time of the last
-      // reminder and fire whenever 15+ seconds have passed since then, instead of
-      // requiring `elapsed % 15 === 0` exactly (which could be missed if the tab
-      // was backgrounded for a moment).
+      // Speak an update every ~30 seconds. We track the elapsed-time of the last
+      // reminder and fire whenever 30+ seconds have passed since then, instead of
+      // requiring an exact match (which could be missed if the tab was backgrounded).
       const lastReminderElapsed = curDurationSec() - lastReminderTime;
-      if (state.isRunning && !state.muted && elapsed >= lastReminderElapsed + 15) {
+      if (state.isRunning && !state.muted && elapsed >= lastReminderElapsed + 30) {
         lastReminderTime = state.timeLeft;
         const cur = getCurrent();
         // Don't read out a task that's already crossed off
@@ -2533,6 +2564,26 @@ function hourBlockHtml(hourMin) {
   `;
 }
 
+// Current wall-clock time as a friendly string, e.g. "3:45 PM".
+function nowCurrentTimeStr() {
+  const d = new Date();
+  let h = d.getHours(); const m = d.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+// Red "NOW" marker line: red rule + flashing NOW tag + big current time.
+function nowLineHtml() {
+  return `
+    <div class="now-line">
+      <span class="now-rule"></span>
+      <span class="now-badge">NOW</span>
+      <span class="now-time" id="now-time">${nowCurrentTimeStr()}</span>
+    </div>
+  `;
+}
+
 function renderTaskRow(task, idx, isCurrent, isDone, overrideName) {
   const isEditingName = state.editingNameIdx === idx;
   const isEditingLoc = state.editingLocationIdx === idx;
@@ -2950,20 +3001,18 @@ function render() {
     actionsHtml = `<button class="btn" data-action="reset" title="Start over (reset timer & progress)">${icon('rotate')} Start over</button>`;
   }
 
-  // Volume control — sits in a centered row right under the table of contents.
+  // Volume control — rendered inline at the end of the tabs row (next to Life goals).
   const effectiveVol = state.muted ? 0 : state.volume;
   const volPct = Math.round(effectiveVol * 100);
   const volumeHtml = `
-    <div class="volume-row">
-      <div class="volume-control" title="Volume: ${volPct}%">
-        <button class="volume-icon-btn" data-action="mute" title="${state.muted ? 'Unmute' : 'Mute'}">
-          ${state.muted || state.volume === 0 ? icon('volume-mute') : icon('volume')}
-        </button>
-        <input type="range" class="volume-slider" id="volume-slider"
-          min="0" max="100" step="1" value="${volPct}"
-          aria-label="Volume" />
-        <span class="volume-pct">${volPct}</span>
-      </div>
+    <div class="volume-control" title="Volume: ${volPct}%">
+      <button class="volume-icon-btn" data-action="mute" title="${state.muted ? 'Unmute' : 'Mute'}">
+        ${state.muted || state.volume === 0 ? icon('volume-mute') : icon('volume')}
+      </button>
+      <input type="range" class="volume-slider" id="volume-slider"
+        min="0" max="100" step="1" value="${volPct}"
+        aria-label="Volume" />
+      <span class="volume-pct">${volPct}</span>
     </div>
   `;
 
@@ -2986,6 +3035,7 @@ function render() {
           autocomplete="off"
         />
       </div>
+      ${nowLineHtml()}
   `;
   // Sort key for checked-off tasks based on location:
   // Shelf 1 → 6 first, then other named locations alphabetically, then no-location last.
@@ -3039,8 +3089,9 @@ function render() {
       hourIndex++;
     }
     const isCurrent = cur && cur.idx === idx && !done;
-    // Hourly water ramps +125 ml each hour: 125, 250, 375, …
-    const overrideName = task.hydration ? `water ${125 * Math.max(1, hourIndex)} ml` : null;
+    // Hourly water ramps with the CLOCK: 8 AM = 125 ml, +125 ml each hour after.
+    const taskHour = Math.floor(clockMin / 60);
+    const overrideName = task.hydration ? `water ${125 * Math.max(1, taskHour - 7)} ml` : null;
     listHtml += renderTaskRow(task, idx, isCurrent, !!done, overrideName);
     const durMin = (task && Number(task.duration) > 0) ? Number(task.duration) : 5;
     clockMin += durMin;
@@ -3055,18 +3106,15 @@ function render() {
   });
   listHtml += `</div>`;
 
-  // Tab bar (table of contents)
+  // Tab bar (table of contents) — volume control sits at the end, next to Life goals.
   const tabsHtml = `<div class="tabs">` + TABS.map(t =>
     `<button class="tab ${state.activeTab === t.id ? 'active' : ''}" data-action="switch-tab" data-tab="${t.id}">${escapeHtml(t.label)}</button>`
-  ).join('') + `</div>`;
+  ).join('') + volumeHtml + `</div>`;
 
   let bodyHtml;
   if (state.activeTab === 'time') {
     bodyHtml = `
-    <div class="header">
-      <div class="header-title">TUNETASK</div>
-      <div class="header-count">${completedCount} / ${totalCount}</div>
-    </div>
+    <div class="time-sticky">
     <div class="circle-row">
       <div class="circle-wrap">
         <svg class="ring" width="300" height="300">
@@ -3078,6 +3126,7 @@ function render() {
     </div>
     <div class="controls">${controlsHtml}</div>
     ${actionsHtml}
+    </div>
     ${listHtml}
     ${renderUnfurnished()}
     <div class="footer-hint">TAP ANY TEXT TO EDIT &nbsp;·&nbsp; DRAG ROWS TO REORDER &nbsp;·&nbsp; <span class="reset-link" data-action="export-tasks">EXPORT MY TASKS</span> &nbsp;·&nbsp; <span class="reset-link" data-action="import-tasks">IMPORT</span> &nbsp;·&nbsp; <span class="reset-link" data-action="reset-all">RESET TO DEFAULTS</span></div>
@@ -3133,7 +3182,11 @@ function render() {
     `;
   }
 
-  document.getElementById('app').innerHTML = tabsHtml + volumeHtml + bodyHtml;
+  document.getElementById('app').innerHTML = tabsHtml + bodyHtml;
+
+  // Tell the desktop sticky timer how far down to pin (just below the frozen tabs)
+  const tabsEl = document.querySelector('.tabs');
+  if (tabsEl) document.documentElement.style.setProperty('--tabs-h', tabsEl.offsetHeight + 'px');
 
   // Focus inputs that just appeared
   if (state.editingNameIdx !== null) {
@@ -3740,6 +3793,11 @@ function checkReminders() {
 // Check every minute while the page is open; first check a few seconds after load.
 setInterval(checkReminders, 60 * 1000);
 setTimeout(checkReminders, 6000);
+// Keep the NOW clock ticking even when the timer isn't running.
+setInterval(() => {
+  const el = document.getElementById('now-time');
+  if (el) el.textContent = nowCurrentTimeStr();
+}, 15 * 1000);
 
 // Start the countdown at the first task's own duration.
 state.timeLeft = curDurationSec();
@@ -3748,6 +3806,39 @@ render();
 // Persist immediately under the current key. This "claims" any data that was
 // adopted from a legacy key or normalized on load, so it survives future updates.
 savePersistedState();
+
+// ---- Auto-start on every visit (a Pause button is available) ----------------
+(function autoStart() {
+  const cur = getCurrent();
+  if (!cur) return; // nothing to run (all done) — leave it
+  state.hasStarted = true;
+  state.isRunning = true;
+  state.timeLeft = curDurationSec();
+  lastReminderTime = curDurationSec();
+  startTimer();
+  render();
+  window.__loadTime = Date.now();
+  // Try to speak the first task right away (works on desktop).
+  try { if (!state.muted) { lastSpokenId = cur.id; speak(buildSpeechIntro(cur.task)); } } catch (e) {}
+})();
+// Browsers block audio until the first interaction. On the first tap/key, unlock
+// speech and read the current task so the voice reliably kicks in on mobile too.
+let __audioUnlocked = false;
+function __unlockAudio() {
+  if (__audioUnlocked) return;
+  __audioUnlocked = true;
+  try { if (window.speechSynthesis) window.speechSynthesis.resume(); } catch (e) {}
+  // If the on-load speech just played (desktop), don't repeat it.
+  if (Date.now() - (window.__loadTime || 0) < 3000) return;
+  const cur = getCurrent();
+  if (cur && state.isRunning && !state.muted) {
+    lastReminderTime = state.timeLeft;
+    speak(buildSpeechIntro(cur.task));
+  }
+}
+['pointerdown', 'touchstart', 'keydown', 'click'].forEach(ev =>
+  document.addEventListener(ev, __unlockAudio, { once: true }));
+
 </script>
 </body>
 </html>
